@@ -5,6 +5,15 @@
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
-    "default_icon": "Hi-icon.png"
+    "default_icon": {
+      "16": "Hi-icon.png",
+      "48": "Hi-icon.png",
+      "128": "Hi-icon.png"
+    }
+  },
+  "icons": {
+    "16": "Hi-icon.png",
+    "48": "Hi-icon.png",
+    "128": "Hi-icon.png"
   }
 }
