@@ -1,0 +1,10 @@
+{
+  "name": "Pause",
+  "description": "A mindful speed bump — pause and reflect before acting on an impulse.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "Hi-icon.png"
+  }
+}

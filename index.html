@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pause</title>
+
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:          #f0ede8;       /* warm off-white */
+      --surface:     #e8e4de;       /* slightly darker card area */
+      --text-primary:   #2c2b29;
+      --text-secondary: #7a776f;
+      --text-muted:     #a8a49c;
+      --border:      #d4cfc8;
+      --btn-bg:      #2c2b29;
+      --btn-text:    #f0ede8;
+      --btn-ghost-bg:    transparent;
+      --btn-ghost-border: #b0aba2;
+      --btn-ghost-text:   #5a5750;
+
+      --radius: 3px;
+      --transition: 400ms ease;
+
+      /* Typeface: dignified, slightly literary */
+      --font: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* ─── Stage (all views live here) ─────────────────────────── */
+    #stage {
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    /* ─── Fade transition helper ───────────────────────────────── */
+    .view {
+      opacity: 0;
+      transition: opacity var(--transition);
+      pointer-events: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      padding: 2rem;
+    }
+
+    .view.active {
+      opacity: 1;
+      pointer-events: auto;
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      padding: 0;
+    }
+
+    /* ─── Typography ───────────────────────────────────────────── */
+    .wordmark {
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      margin-bottom: 3.5rem;
+      font-weight: 400;
+    }
+
+    .headline {
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      line-height: 1.55;
+      margin-bottom: 2.5rem;
+      font-style: italic;
+    }
+
+    .subtext {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: var(--font-ui);
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ─── Buttons ──────────────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      padding: 0.65rem 1.8rem;
+      transition: opacity 200ms ease, background 200ms ease;
+      -webkit-font-smoothing: antialiased;
+      text-transform: none;
+      outline: none;
+      line-height: 1;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--text-muted);
+      outline-offset: 3px;
+    }
+
+    .btn-primary {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: var(--btn-bg);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.82;
+    }
+
+    .btn-ghost {
+      background: var(--btn-ghost-bg);
+      color: var(--btn-ghost-text);
+      border-color: var(--btn-ghost-border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Countdown display ────────────────────────────────────── */
+    #countdown-number {
+      font-size: 5rem;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--text-primary);
+      margin-bottom: 1.25rem;
+      font-family: var(--font);
+      letter-spacing: -0.02em;
+      transition: opacity 600ms ease;
+    }
+
+    #countdown-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    /* Thin progress line at bottom of countdown */
+    #progress-bar-wrap {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      border-radius: 1px;
+      margin-top: 2.5rem;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 100%;
+      background: var(--text-muted);
+      transform-origin: left center;
+      transform: scaleX(1);
+      transition: transform linear; /* duration set via JS */
+    }
+
+    /* ─── Acknowledgement message ──────────────────────────────── */
+    #ack-message {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      font-family: var(--font-ui);
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Divider ──────────────────────────────────────────────── */
+    .divider {
+      width: 2rem;
+      height: 1px;
+      background: var(--border);
+      margin: 0 auto 2.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="stage">
+
+    <!-- ── View 1: Entry ──────────────────────────────────────── -->
+    <div id="view-entry" class="view active">
+      <p class="wordmark">Pause</p>
+      <div class="divider"></div>
+      <p class="headline">Before you act,<br>take ten seconds.</p>
+      <p class="subtext">
+        Press the button below whenever you notice<br>
+        an impulse you'd like to examine.
+      </p>
+      <button class="btn btn-primary" id="btn-start">Pause</button>
+    </div>
+
+    <!-- ── View 2: Countdown ──────────────────────────────────── -->
+    <div id="view-countdown" class="view">
+      <p class="wordmark">Pause</p>
+      <div id="countdown-number">10</div>
+      <p id="countdown-label">seconds</p>
+      <div id="progress-bar-wrap">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- ── View 3: Question ───────────────────────────────────── -->
+    <div id="view-question" class="view">
+      <p class="wordmark">Pause</p>
+      <div class="divider"></div>
+      <p class="headline">Do you want to continue,<br>or were you acting automatically?</p>
+      <div class="btn-row">
+        <button class="btn btn-primary"  id="btn-continue">Continue</button>
+        <button class="btn btn-ghost"    id="btn-close">Close</button>
+      </div>
+    </div>
+
+    <!-- ── View 4: Acknowledgement ────────────────────────────── -->
+    <div id="view-ack" class="view">
+      <p id="ack-message">Choice acknowledged.</p>
+    </div>
+
+  </div>
+
+  <script>
+    /* ─────────────────────────────────────────────────────────────
+       Pause — Behavioral Interruption Tool
+       All state transitions are managed here. No data is stored.
+    ───────────────────────────────────────────────────────────── */
+
+    const COUNTDOWN_SECONDS = 10;
+    const FADE_DURATION     = 400;  /* ms — matches CSS --transition */
+    const ACK_HOLD          = 2000; /* ms before auto-reset */
+
+    /* ── DOM references ───────────────────────────────────────── */
+    const views = {
+      entry:     document.getElementById('view-entry'),
+      countdown: document.getElementById('view-countdown'),
+      question:  document.getElementById('view-question'),
+      ack:       document.getElementById('view-ack'),
+    };
+
+    const btnStart    = document.getElementById('btn-start');
+    const btnContinue = document.getElementById('btn-continue');
+    const btnClose    = document.getElementById('btn-close');
+    const countdownEl = document.getElementById('countdown-number');
+    const progressBar = document.getElementById('progress-bar');
+
+    /* ── Internal state ───────────────────────────────────────── */
+    let countdownInterval = null;
+    let resetTimeout      = null;
+
+    /* ── Transition helper ────────────────────────────────────── */
+    /* Fades out the current active view, then fades in the target. */
+    function showView(targetId) {
+      const current = document.querySelector('.view.active');
+      const next    = views[targetId];
+
+      if (current === next) return;
+
+      /* Fade out current */
+      if (current) {
+        current.style.opacity = '0';
+        current.style.pointerEvents = 'none';
+        setTimeout(() => {
+          current.classList.remove('active');
+          current.style.opacity = '';  /* restore to CSS default */
+        }, FADE_DURATION);
+      }
+
+      /* Fade in next after a brief overlap */
+      setTimeout(() => {
+        next.classList.add('active');
+      }, FADE_DURATION * 0.6);
+    }
+
+    /* ── Countdown logic ──────────────────────────────────────── */
+    function startCountdown() {
+      let remaining = COUNTDOWN_SECONDS;
+      countdownEl.textContent = remaining;
+
+      /* Animate the progress bar depleting over COUNTDOWN_SECONDS */
+      /* Small delay so the transition is visible from the start  */
+      requestAnimationFrame(() => {
+        progressBar.style.transition = `transform ${COUNTDOWN_SECONDS}s linear`;
+        progressBar.style.transform  = 'scaleX(0)';
+      });
+
+      /* Tick every second */
+      countdownInterval = setInterval(() => {
+        remaining -= 1;
+
+        /* Subtle opacity pulse on the number */
+        countdownEl.style.opacity = '0.4';
+        setTimeout(() => { countdownEl.style.opacity = '1'; }, 200);
+
+        if (remaining > 0) {
+          countdownEl.textContent = remaining;
+        } else {
+          /* Countdown complete — show question */
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          showView('question');
+        }
+      }, 1000);
+    }
+
+    /* Reset the progress bar to full (instant, no transition) */
+    function resetProgressBar() {
+      progressBar.style.transition = 'none';
+      progressBar.style.transform  = 'scaleX(1)';
+    }
+
+    /* ── Full reset to entry state ────────────────────────────── */
+    function resetToEntry() {
+      clearInterval(countdownInterval);
+      clearTimeout(resetTimeout);
+      countdownInterval = null;
+      resetTimeout      = null;
+
+      resetProgressBar();
+      countdownEl.textContent = COUNTDOWN_SECONDS;
+      countdownEl.style.opacity = '1';
+
+      showView('entry');
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Event listeners
+    ───────────────────────────────────────────────────────────── */
+
+    /* "Pause" button pressed */
+    btnStart.addEventListener('click', () => {
+      resetProgressBar();           /* ensure bar is full before animating */
+      showView('countdown');
+      /* Small delay so the view is visible before animation starts */
+      setTimeout(startCountdown, 300);
+    });
+
+    /* "Continue" button pressed */
+    btnContinue.addEventListener('click', () => {
+      showView('ack');
+      /* Auto-reset after a quiet moment */
+      resetTimeout = setTimeout(resetToEntry, ACK_HOLD);
+    });
+
+    /* "Close" button pressed */
+    btnClose.addEventListener('click', () => {
+      resetToEntry();
+    });
+
+  </script>
+</body>
+</html>
